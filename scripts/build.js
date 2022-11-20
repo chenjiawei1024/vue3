@@ -14,10 +14,11 @@ nr build core --formats cjs
 ```
 */
 
+// 引入依赖
 const fs = require('fs-extra')
 const path = require('path')
 const chalk = require('chalk')
-const execa = require('execa')
+const execa = require('execa') // 开启子进程（用于并行打包）
 const { gzipSync } = require('zlib')
 const { compress } = require('brotli')
 const { targets: allTargets, fuzzyMatchTarget } = require('./utils')
@@ -37,22 +38,26 @@ run()
 
 async function run() {
   if (isRelease) {
-    // remove build cache for release builds to avoid outdated enum values
+    //删除版本构建的构建缓存，以避免过时的enum值
     await fs.remove(path.resolve(__dirname, '../node_modules/.rts2_cache'))
   }
   if (!targets.length) {
+    // 打包全部packages包
     await buildAll(allTargets)
     checkAllSizes(allTargets)
   } else {
+    // 打包部分packages包
     await buildAll(fuzzyMatchTarget(targets, buildAllMatching))
     checkAllSizes(fuzzyMatchTarget(targets, buildAllMatching))
   }
 }
 
 async function buildAll(targets) {
+  // os.cpus()返回一个对象数组，包含所安装的每个 CPU/内核的信息：型号、速度（单位 MHz）、时间，这里要获取的是cpu可以并行的数量
   await runParallel(require('os').cpus().length, targets, build)
 }
 
+// 并行运行打包工序
 async function runParallel(maxConcurrency, source, iteratorFn) {
   const ret = []
   const executing = []
@@ -72,6 +77,7 @@ async function runParallel(maxConcurrency, source, iteratorFn) {
 }
 
 async function build(target) {
+  // 获取需要打包的文件夹路径
   const pkgDir = path.resolve(`packages/${target}`)
   const pkg = require(`${pkgDir}/package.json`)
 
@@ -88,15 +94,16 @@ async function build(target) {
   const env =
     (pkg.buildOptions && pkg.buildOptions.env) ||
     (devOnly ? 'development' : 'production')
+  // 使用rollup并行打包
   await execa(
     'rollup',
     [
-      '-c',
-      '--environment',
+      '-c', // 执行rollup配置（rollup.config.js）
+      '--environment', // 环境变量
       [
         `COMMIT:${commit}`,
         `NODE_ENV:${env}`,
-        `TARGET:${target}`,
+        `TARGET:${target}`, // 目标仓库
         formats ? `FORMATS:${formats}` : ``,
         buildTypes ? `TYPES:true` : ``,
         prodOnly ? `PROD_ONLY:true` : ``,
@@ -105,7 +112,7 @@ async function build(target) {
         .filter(Boolean)
         .join(',')
     ],
-    { stdio: 'inherit' }
+    { stdio: 'inherit' } // 让子进程输出内容可以展示
   )
 
   if (buildTypes && pkg.types) {

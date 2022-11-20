@@ -1,24 +1,30 @@
 // @ts-check
+// 引入依赖
 import path from 'path'
 import ts from 'rollup-plugin-typescript2'
 import replace from '@rollup/plugin-replace'
 import json from '@rollup/plugin-json'
 
+// 确定env环境 若无直接终止
 if (!process.env.TARGET) {
   throw new Error('TARGET package must be specified via --environment flag.')
 }
 
 const masterVersion = require('./package.json').version
+// 获取
 const packagesDir = path.resolve(__dirname, 'packages')
 const packageDir = path.resolve(packagesDir, process.env.TARGET)
+// 获取打包的项目配置
 const resolve = p => path.resolve(packageDir, p)
 const pkg = require(resolve(`package.json`))
 const packageOptions = pkg.buildOptions || {}
+// 获取被打包的包名
 const name = packageOptions.filename || path.basename(packageDir)
 
 // ensure TS checks only once for each build
 let hasTSChecked = false
 
+// 根据不同模块打包
 const outputConfigs = {
   'esm-bundler': {
     file: resolve(`dist/${name}.esm-bundler.js`),
