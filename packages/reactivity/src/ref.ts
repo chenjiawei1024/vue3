@@ -36,6 +36,7 @@ type RefBase<T> = {
   value: T
 }
 
+// 收集依赖
 export function trackRefValue(ref: RefBase<any>) {
   if (shouldTrack && activeEffect) {
     ref = toRaw(ref)
@@ -51,6 +52,7 @@ export function trackRefValue(ref: RefBase<any>) {
   }
 }
 
+// 触发依赖
 export function triggerRefValue(ref: RefBase<any>, newVal?: any) {
   ref = toRaw(ref)
   if (ref.dep) {
@@ -94,6 +96,7 @@ export function shallowRef(value?: unknown) {
   return createRef(value, true)
 }
 
+// 创建ref对象（若已经是ref对象则直接返回）
 function createRef(rawValue: unknown, shallow: boolean) {
   if (isRef(rawValue)) {
     return rawValue
@@ -101,6 +104,7 @@ function createRef(rawValue: unknown, shallow: boolean) {
   return new RefImpl(rawValue, shallow)
 }
 
+// ref构造函数
 class RefImpl<T> {
   private _value: T
   private _rawValue: T
@@ -113,6 +117,7 @@ class RefImpl<T> {
     this._value = __v_isShallow ? value : toReactive(value)
   }
 
+  // 拦截.value的get和set行为
   get value() {
     trackRefValue(this)
     return this._value

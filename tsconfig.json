@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
+    "baseUrl": ".", // 根路径
     "outDir": "dist",
     "sourceMap": false,
     "target": "es2016",
     "newLine": "LF",
     "useDefineForClassFields": false,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "node", // 模块查找策略， 启用node模式
     "allowJs": false,
     "strict": true,
     "noUnusedLocals": true,
@@ -20,6 +20,7 @@
     "types": ["jest", "puppeteer", "node"],
     "rootDir": ".",
     "paths": {
+      // 解决workspaces引入的路径问题
       "@vue/compat": ["packages/vue-compat/src"],
       "@vue/*": ["packages/*/src"],
       "vue": ["packages/vue/src"]
